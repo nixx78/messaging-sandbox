@@ -1,0 +1,42 @@
+name: txn_sandbox
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    container_name: db_txn_sandbox
+    environment:
+      MYSQL_DATABASE: db_txn_sandbox
+      MYSQL_USER: user
+      # You can use whatever password you like
+      MYSQL_PASSWORD: password
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - '3306:3306'
+    expose:
+      # Opens port 3306 on the container
+      - '3306'
+      # Where our data will be persisted
+    volumes:
+      - txn_sandbox:/var/lib/txn_sandbox
+
+  activemq:
+    image: apache/activemq-classic:5.17.7
+    container_name: activemq_txn_sandbox
+    restart: unless-stopped
+    ports:
+      - '61616:61616'  # OpenWire (JMS)
+      - '8161:8161'    # Web
+      - '5672:5672'    # AMQP
+      - '61613:61613'  # STOMP
+      - '1883:1883'    # MQTT
+      - '61614:61614'  # WebSockets
+    expose:
+      - '61616'
+    environment:
+      - ACTIVEMQ_ADMIN_LOGIN=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=admin
+
+volumes:
+  txn_sandbox:
