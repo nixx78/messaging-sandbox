@@ -25,7 +25,7 @@ public class AppController {
     }
 
     @GetMapping("/audit")
-    public Collection<AuditEntity> getAllAutditMessages() {
+    public Collection<AuditEntity> getAllAuditMessages() {
         return auditRepository.findAll();
     }
 

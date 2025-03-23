@@ -34,6 +34,7 @@ services:
       - '61614:61614'  # WebSockets
     expose:
       - '61616'
+      - '8161'
     environment:
       - ACTIVEMQ_ADMIN_LOGIN=admin
       - ACTIVEMQ_ADMIN_PASSWORD=admin
