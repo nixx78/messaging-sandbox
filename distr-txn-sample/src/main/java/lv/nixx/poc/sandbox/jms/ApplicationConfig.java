@@ -23,26 +23,6 @@ import org.springframework.transaction.jta.JtaTransactionManager;
 @EnableJms
 public class ApplicationConfig {
 
-    /*
-    @Bean
-    public DataSource dataSource() {
-        MysqlXADataSource mysqlXADataSource = new MysqlXADataSource();
-        mysqlXADataSource.setUrl("jdbc:mysql://localhost:3306/db_txn_sandbox?useUnicode=yes&characterEncoding=UTF-8");
-        mysqlXADataSource.setUser("user");
-        mysqlXADataSource.setPassword("password");
-
-//        HikariConfig hikariConfig = new HikariConfig();
-//        hikariConfig.setDataSource(mysqlXADataSource);
-//        hikariConfig.setAutoCommit(false);
-
-        AtomikosDataSourceBean dataSource = new AtomikosDataSourceBean();
-        dataSource.setUniqueResourceName("xaDataSource");
-        dataSource.setXaDataSource(mysqlXADataSource);
-
-        return dataSource;
-    }
-     */
-
     @Bean
     public ConnectionFactory connectionFactory() {
         ActiveMQXAConnectionFactory activeMQXAConnectionFactory = new ActiveMQXAConnectionFactory();
@@ -56,33 +36,31 @@ public class ApplicationConfig {
         xaConnectionFactory.setPoolSize(5);
         xaConnectionFactory.setLocalTransactionMode(true);
 
-
         return xaConnectionFactory;
     }
 
-    @Bean
-    public JmsListenerContainerFactory<?> containerFactory(ConnectionFactory connectionFactory, DefaultJmsListenerContainerFactoryConfigurer configurer) {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+    @Bean(name = "transactionManager")
+    public PlatformTransactionManager jtaTransactionManager(UserTransaction userTransaction,
+                                                            @Qualifier("atomikosTransactionManager") TransactionManager atomikosTransactionManager
+    ) {
+        return new JtaTransactionManager(userTransaction, atomikosTransactionManager);
+    }
 
+    @Bean
+    public JmsListenerContainerFactory<?> containerFactory(PlatformTransactionManager platformTransactionManager, ConnectionFactory connectionFactory, DefaultJmsListenerContainerFactoryConfigurer configurer) {
+        // Configuration specific to QUEUE
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         configurer.configure(factory, connectionFactory);
+
+        factory.setTransactionManager(platformTransactionManager);
+
         return factory;
     }
 
     @Bean
-    public JmsListenerContainerFactory<?> topicListenerFactory(PlatformTransactionManager platformTransactionManager, ConnectionFactory connectionFactory, DefaultJmsListenerContainerFactoryConfigurer configurer) {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        configurer.configure(factory, connectionFactory);
-
-//        factory.setTransactionManager(platformTransactionManager);
-//        factory.setSessionTransacted(true);
-        factory.setPubSubDomain(true);
-        return factory;
-    }
-
-    @Bean
-    public JmsTemplate jmsQueueTemplate(ConnectionFactory connectionFactory) {
+    public JmsTemplate jmsQueueTemplate(ConnectionFactory queueListenerFactory) {
         JmsTemplate template = new JmsTemplate();
-        template.setConnectionFactory(connectionFactory);
+        template.setConnectionFactory(queueListenerFactory);
         template.setSessionTransacted(true);
 
         return template;
@@ -96,10 +74,5 @@ public class ApplicationConfig {
     }
 
 
-    @Bean(name = "transactionManager")
-    public PlatformTransactionManager jtaTransactionManager(UserTransaction userTransaction,
-                                                            @Qualifier("atomikosTransactionManager") TransactionManager atomikosTransactionManager
-    ) {
-        return new JtaTransactionManager(userTransaction, atomikosTransactionManager);
-    }
+
 }
