@@ -1,4 +1,4 @@
-package lv.nixx.poc.sandbox.jms;
+package lv.nixx.poc.sandbox;
 
 import lv.nixx.poc.sandbox.db.AuditEntity;
 import lv.nixx.poc.sandbox.db.AuditRepository;

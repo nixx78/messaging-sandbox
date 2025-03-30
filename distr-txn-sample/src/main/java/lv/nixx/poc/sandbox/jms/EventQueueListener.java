@@ -6,9 +6,9 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MessageFromQueueListener {
+public class EventQueueListener {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(MessageFromQueueListener.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(EventQueueListener.class);
 
 	@JmsListener(concurrency = "1", destination = "${event.queue.name}", containerFactory = "containerFactory")
 	public void receiveMessage(String message) {
