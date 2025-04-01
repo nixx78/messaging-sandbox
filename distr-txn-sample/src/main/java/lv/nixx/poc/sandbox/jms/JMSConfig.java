@@ -5,13 +5,10 @@ import jakarta.jms.ConnectionFactory;
 import jakarta.transaction.TransactionManager;
 import jakarta.transaction.UserTransaction;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jms.annotation.EnableJms;
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.jms.config.JmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
@@ -47,20 +44,9 @@ public class JMSConfig {
 */
 
     @Bean
-    public JmsListenerContainerFactory<?> containerFactory(ConnectionFactory connectionFactory, DefaultJmsListenerContainerFactoryConfigurer configurer) {
-        // Configuration specific to QUEUE
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        configurer.configure(factory, connectionFactory);
-
-        factory.setTransactionManager(null);
-        return factory;
-    }
-
-    @Bean
     public JmsTemplate jmsQueueTemplate(ConnectionFactory queueListenerFactory) {
         JmsTemplate template = new JmsTemplate();
         template.setConnectionFactory(queueListenerFactory);
-        template.setSessionTransacted(true);
         return template;
     }
 

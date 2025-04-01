@@ -46,6 +46,12 @@ public class SaveAndSendService {
             public void afterCommit() {
                 log.info("Commit success !!!");
             }
+
+            @Override
+            public void afterCompletion(int status) {
+                log.info("After afterCompletion !!!");
+            }
+
         });
     }
 
