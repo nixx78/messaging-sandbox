@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import javax.jms.*;
+import jakarta.jms.*;
 
 @Component
 public class EventAsTextListener {

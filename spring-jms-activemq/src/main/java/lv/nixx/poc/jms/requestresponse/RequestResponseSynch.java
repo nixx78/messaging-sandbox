@@ -1,5 +1,6 @@
 package lv.nixx.poc.jms.requestresponse;
 
+import java.lang.IllegalStateException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -7,30 +8,27 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import jakarta.jms.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RequestResponseSynch {
 
-	private static final String SYNCH_QUEUE_RESPONSE = "synch.queue.response";
-	private static Map<String, BlockingQueue<String>> map = new ConcurrentHashMap<>();
-	private JmsTemplate jmsTemplate;
+	public static final String REQUEST_SYNC_QUEUE = "request.sync.queue";
+	public static final String RESPONSE_SYNC_QUEUE = "response.sync.queue";
 
-	@Autowired
-	public void setJmsTemplate(JmsTemplate jmsQueueTemplate) {
+	private static final Map<String, BlockingQueue<String>> map = new ConcurrentHashMap<>();
+
+	private final JmsTemplate jmsTemplate;
+
+	public RequestResponseSynch(JmsTemplate jmsQueueTemplate) {
 		this.jmsTemplate = jmsQueueTemplate;
 	}
 
-	@JmsListener(destination = SYNCH_QUEUE_RESPONSE, containerFactory = "containerFactory")
+	@JmsListener(destination = RESPONSE_SYNC_QUEUE, containerFactory = "containerFactory")
 	public void responseCome(TextMessage message) throws Exception {
 
 		String correlationID = message.getJMSCorrelationID();
@@ -42,19 +40,16 @@ public class RequestResponseSynch {
 		}
 	}
 
-	public String sendSynchRequest(String message) throws Exception {
+	public String sendSyncRequest(String message) throws Exception {
 		String id = UUID.randomUUID().toString();
 
 		map.put(id, new ArrayBlockingQueue<>(1));
 
-		jmsTemplate.send("synch.queue.request", new MessageCreator() {
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				TextMessage msg = session.createTextMessage(message);
-				msg.setJMSCorrelationID(id);
-				return msg;
-			}
-		});
+		jmsTemplate.send(REQUEST_SYNC_QUEUE, session -> {
+            TextMessage msg = session.createTextMessage(message);
+            msg.setJMSCorrelationID(id);
+            return msg;
+        });
 
 		return waitForResponse(id);
 	}
@@ -67,7 +62,7 @@ public class RequestResponseSynch {
 				String resp = q.poll(5, TimeUnit.SECONDS);
 				
 				if (resp == null ) {
-					throw new IllegalStateException("Timeout durign wating for response, id:" + id);
+					throw new IllegalStateException("Timeout during waiting for response, id:" + id);
 				}
 				
 				return resp;

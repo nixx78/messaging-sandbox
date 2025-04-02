@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.*;
-import org.springframework.core.env.Environment;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
@@ -13,7 +12,7 @@ import org.springframework.jms.support.converter.MappingJackson2MessageConverter
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
-import javax.jms.ConnectionFactory;
+import jakarta.jms.ConnectionFactory;
 
 @Configuration
 @PropertySource("classpath:activemq.properties")
@@ -21,17 +20,11 @@ import javax.jms.ConnectionFactory;
 @ComponentScan(basePackages = "lv.nixx.poc.jms.*")
 public class Config {
 
-    private Environment env;
     private ConnectionFactory connectionFactory;
 
     @Autowired
     public void setConnectionFactory(ConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
-    }
-
-    @Autowired
-    public void setEnv(Environment env) {
-        this.env = env;
     }
 
     @Bean
@@ -63,16 +56,6 @@ public class Config {
         factory.setPubSubDomain(true);
         return factory;
     }
-
-
-//     @Bean
-//    public ActiveMQConnectionFactory connectionFactory(){
-//        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory();
-//        connectionFactory.setBrokerURL(env.getProperty("activemq.broker-url"));
-//        connectionFactory.setPassword(env.getProperty("activemq.user"));
-//        connectionFactory.setUserName(env.getProperty("activemq.password"));
-//        return connectionFactory;
-//    }
 
     @Bean
     public JmsTemplate jmsQueueTemplate() {

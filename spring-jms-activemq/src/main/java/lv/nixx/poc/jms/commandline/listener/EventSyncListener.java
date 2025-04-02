@@ -5,41 +5,35 @@ import lv.nixx.poc.jms.commandline.domain.Event;
 import lv.nixx.poc.jms.commandline.domain.ResponseToEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.stereotype.Component;
 
-import javax.jms.*;
+import jakarta.jms.*;
 import java.io.IOException;
 
 @Component
-public class EventSynchListener {
+public class EventSyncListener {
 
-	private static final Logger LOG = LoggerFactory.getLogger(EventSynchListener.class);
+	private static final Logger LOG = LoggerFactory.getLogger(EventSyncListener.class);
 
-	private JmsTemplate jmsTemplate;
-	private ObjectMapper om;
+	private final JmsTemplate jmsTemplate;
+	private final ObjectMapper om;
 
-	@Autowired
-	public void setJmsTemplate(JmsTemplate jmsQueueTemplate) {
+	public EventSyncListener(JmsTemplate jmsQueueTemplate, ObjectMapper om) {
 		this.jmsTemplate = jmsQueueTemplate;
+		this.om = om;
 	}
 
-	@Autowired
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		this.om = objectMapper;
-	}
-
-	@JmsListener(destination = "synch.event.queue", containerFactory = "containerFactory")
+	@JmsListener(destination = "sync.event.queue", containerFactory = "containerFactory")
 	public void receiveMessage(TextMessage message) throws JMSException, IOException {
 		Destination jmsReplyTo = message.getJMSReplyTo();
 
 		String request = message.getText();
 		String jmsCorrelationID = message.getJMSCorrelationID();
 
-		LOG.info("Synch message [{}] come, reply queue [{}]", request, jmsReplyTo);
+		LOG.info("Sync request message [{}] come, reply queue [{}]", request, jmsReplyTo);
 
 		Event e = om.readValue(request, Event.class);
 

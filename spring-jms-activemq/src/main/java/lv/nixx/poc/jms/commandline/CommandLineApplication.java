@@ -6,29 +6,23 @@ import lv.nixx.poc.jms.commandline.domain.Event;
 import lv.nixx.poc.jms.commandline.domain.EventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.TextMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.TextMessage;
 
 @Component
 public class CommandLineApplication {
 
     private static final Logger LOG = LoggerFactory.getLogger(CommandLineApplication.class);
 
-    private JmsSender jmsSender;
-    private ObjectMapper om;
+    private final JmsSender jmsSender;
+    private final ObjectMapper om;
 
-    @Autowired
-    public void setJmsSender(JmsSender jmsSender) {
+    public CommandLineApplication(JmsSender jmsSender, ObjectMapper om) {
         this.jmsSender = jmsSender;
-    }
-
-    @Autowired
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.om = objectMapper;
+        this.om = om;
     }
 
     public void sendMessageAndLogResponse(String message) throws JMSException, JsonProcessingException {
@@ -40,8 +34,8 @@ public class CommandLineApplication {
         jmsSender.sendMessageToTopic("event.topic", jsonEvent);
         jmsSender.sendMessageToQueue("event.text.queue", jsonEvent);
 
-        Message sendAndReceive = jmsSender.sendAndReceive("synch.event.queue", jsonEvent);
-        LOG.info("Synch response to request [{}]", ((TextMessage) sendAndReceive).getText());
+        Message sendAndReceive = jmsSender.sendAndReceive("sync.event.queue", jsonEvent);
+        LOG.info("Sync response to request [{}]", ((TextMessage) sendAndReceive).getText());
     }
 
 

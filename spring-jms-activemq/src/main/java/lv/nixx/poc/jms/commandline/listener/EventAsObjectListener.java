@@ -17,7 +17,7 @@ public class EventAsObjectListener {
 	}
 
 	// How we can configure queue name from properties
-	@JmsListener(concurrency = "1", destination = "${event.queue.name}", containerFactory = "containerFactory")
+	@JmsListener(concurrency = "1", destination = "event.queue", containerFactory = "containerFactory")
 	public void receiveMessage1(Event message) {
 		LOG.info("Queue listener2: Event as object come {}", message);
 	}
